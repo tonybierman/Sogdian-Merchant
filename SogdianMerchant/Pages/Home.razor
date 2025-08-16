@@ -4,10 +4,11 @@
 @inject IJSRuntime JSRuntime
 @inject IGameService GameService
 
-<FluentHeader>Caravan Trading Game</FluentHeader>
 
-<FluentCard Height="80vh" Style="padding: 10px;">
-    <FluentLabel>Round @GameService.State.RoundNumber</FluentLabel>
+<FluentCard Height="97vh" Width="97vw" Style="padding: 10px;">
+    <FluentLabel Typo="Typography.H1">Sogdian Merchant</FluentLabel>
+    <FluentLabel Typo="Typography.H2">Caravan Trading Game</FluentLabel>
+    <FluentLabel Typo="Typography.H3">Round @GameService.State.RoundNumber</FluentLabel>
     <FluentLabel>Player Gold: @GameService.State.PlayerGold.ToString("F2") | Computer Gold: @GameService.State.ComputerGold.ToString("F2")</FluentLabel>
     <FluentLabel>Your camel quality this round: @GameService.State.PlayerCamelQuality.ToString("F2") (speed multiplier)</FluentLabel>
     <pre>@GameService.State.CurrentMessage</pre>
