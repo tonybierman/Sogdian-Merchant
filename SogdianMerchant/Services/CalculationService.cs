@@ -5,10 +5,10 @@
     {
         private static readonly Market[] Markets =
         {
-        new("Nearby Market", 100.0, 0.1, 500.0),
-        new("Medium Market", 500.0, 0.3, 1500.0),
-        new("Distant Market", 1000.0, 0.6, 3000.0)
-    };
+            new("Bukhara Market", 280, 0.1, 500.0),
+            new("Jankent Market", 780.0, 0.3, 1500.0),
+            new("Karachi Market", 2217.0, 0.6, 3000.0)
+        };
 
         public double GetTravelRate(string guide)
         {

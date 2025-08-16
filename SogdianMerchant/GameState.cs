@@ -32,7 +32,7 @@
         public string CurrentPhase { get; set; } = "";
         public bool GameOver { get; set; } = false;
 
-        public string[] AvailableMarkets => new[] { "Nearby Market", "Medium Market", "Distant Market" }
+        public string[] AvailableMarkets => new[] { "Bukhara Market", "Jankent Market", "Karachi Market" }
             .Where(m => !UnavailableMarkets.Contains(m)).ToArray();
     }
 }
