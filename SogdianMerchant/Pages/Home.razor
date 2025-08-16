@@ -1,0 +1,495 @@
+﻿@page "/"
+@using System.Linq
+@using System
+@inject IJSRuntime JSRuntime
+
+<h3>Caravan Trading Game</h3>
+
+<div>
+    <p>Round @roundNumber</p>
+    <p>Player Gold: @playerGold.ToString("F2") | Computer Gold: @computerGold.ToString("F2")</p>
+    <p>Your camel quality this round: @playerCamelQuality.ToString("F2") (speed multiplier)</p>
+    <pre>@currentMessage</pre>
+
+    @if (!gameOver)
+    {
+        @if (currentPhase == "guards" && choosingGuards)
+        {
+            <p>Available guards: @availableGuards</p>
+            <input type="number" @bind="guardInput" min="1" max="@availableGuards" />
+            <button @onclick="SubmitGuards">Submit Guards</button>
+        }
+        else if (currentPhase == "guide" && choosingGuide)
+        {
+            <p>Available guides: @(noviceAvailable ? "Novice " : "")@(veteranAvailable ? "Veteran " : "")@(noviceAvailable || veteranAvailable ? "" : "None")</p>
+            <select @bind="guideInput">
+                <option value="None">None</option>
+                @if (noviceAvailable)
+                {
+                    <option value="Novice">Novice</option>
+                }
+                @if (veteranAvailable)
+                {
+                    <option value="Veteran">Veteran</option>
+                }
+            </select>
+            <button @onclick="SubmitGuide">Submit Guide</button>
+        }
+        else if (currentPhase == "market" && choosingMarket)
+        {
+            <p>Available markets: @string.Join(", ", availableMarkets)</p>
+            <select @bind="marketInput">
+                <option value="Do Nothing">Do Nothing</option>
+                @foreach (var market in availableMarkets)
+                {
+                    <option value="@market">@market</option>
+                }
+            </select>
+            <button @onclick="SubmitMarket">Submit Market</button>
+        }
+        else if (currentPhase == "end")
+        {
+            <button @onclick="ContinueToNextRound">Continue to Next Round</button>
+        }
+    }
+
+    @if (gameOver)
+    {
+        <p>@(playerGold >= 5000.0 ? "Player wins the game!" : "Computer wins the game!")</p>
+        <button @onclick="RestartGame">Restart Game</button>
+    }
+</div>
+
+@code {
+    private double playerGold = 500.0;
+    private double computerGold = 500.0;
+    private int roundNumber = 1;
+    private const int totalGuards = 6;
+    private bool noviceAvailable;
+    private bool veteranAvailable;
+    private string[] unavailableMarkets = Array.Empty<string>();
+    private double playerCamelQuality;
+    private double computerCamelQuality;
+    private int availableGuards;
+    private bool choosingGuards;
+    private bool choosingGuide;
+    private bool choosingMarket;
+    private int guardInput;
+    private string guideInput = "None";
+    private string marketInput = "Do Nothing";
+    private int playerGuards;
+    private int computerGuards;
+    private string playerGuide = "None";
+    private string computerGuide = "None";
+    private string playerMarket = "Do Nothing";
+    private string computerMarket = "Do Nothing";
+    private bool playerPicksGuardsFirst;
+    private bool playerPicksGuideFirst;
+    private bool playerPicksMarketFirst;
+    private string currentMessage = "";
+    private string currentPhase = "";
+    private bool gameOver = false;
+    private Random rand = new Random();
+
+    protected override void OnInitialized()
+    {
+        StartRound();
+    }
+
+    private void StartRound()
+    {
+        currentMessage = $"Round {roundNumber} begins!\n";
+        playerCamelQuality = rand.NextDouble() * 0.4 + 0.8;
+        computerCamelQuality = rand.NextDouble() * 0.4 + 0.8;
+        availableGuards = totalGuards;
+        noviceAvailable = true;
+        veteranAvailable = true;
+        unavailableMarkets = Array.Empty<string>();
+
+        StartGuardsPhase();
+    }
+
+    private void StartGuardsPhase()
+    {
+        currentPhase = "guards";
+        playerPicksGuardsFirst = rand.Next(2) == 0;
+        currentMessage += playerPicksGuardsFirst ? "You pick guards first.\n" : "Computer picks guards first.\n";
+
+        if (playerPicksGuardsFirst)
+        {
+            choosingGuards = true;
+        }
+        else
+        {
+            computerGuards = ComputerChoices.ChooseGuards(availableGuards, noviceAvailable, veteranAvailable, computerCamelQuality);
+            availableGuards -= computerGuards;
+            currentMessage += $"Computer chose {computerGuards} guards, leaving {availableGuards} for you.\n";
+            choosingGuards = true;
+        }
+        StateHasChanged();
+    }
+
+    private async Task SubmitGuards()
+    {
+        playerGuards = Math.Clamp(guardInput, 1, availableGuards);
+        availableGuards -= playerGuards;
+        if (playerPicksGuardsFirst)
+        {
+            computerGuards = ComputerChoices.ChooseGuards(availableGuards, noviceAvailable, veteranAvailable, computerCamelQuality);
+            availableGuards -= computerGuards;
+            currentMessage += $"You chose {playerGuards} guards. Computer then chose {computerGuards} guards.\n";
+        }
+        else
+        {
+            currentMessage += $"You chose {playerGuards} guards.\n";
+        }
+
+        choosingGuards = false;
+        StartGuidePhase();
+    }
+
+    private void StartGuidePhase()
+    {
+        currentPhase = "guide";
+        playerPicksGuideFirst = rand.Next(2) == 0;
+        currentMessage += playerPicksGuideFirst ? "You pick guide first.\n" : "Computer picks guide first.\n";
+
+        if (playerPicksGuideFirst)
+        {
+            choosingGuide = true;
+        }
+        else
+        {
+            computerGuide = ComputerChoices.ChooseGuide(noviceAvailable, veteranAvailable, computerGuards, computerCamelQuality);
+            if (computerGuide == "Novice") noviceAvailable = false;
+            if (computerGuide == "Veteran") veteranAvailable = false;
+            currentMessage += $"Computer chose {computerGuide} guide.\n";
+            choosingGuide = true;
+        }
+        StateHasChanged();
+    }
+
+    private async Task SubmitGuide()
+    {
+        playerGuide = guideInput;
+        if (playerGuide == "Novice" && noviceAvailable) noviceAvailable = false;
+        else if (playerGuide == "Novice") playerGuide = "None";
+        if (playerGuide == "Veteran" && veteranAvailable) veteranAvailable = false;
+        else if (playerGuide == "Veteran") playerGuide = "None";
+
+        if (playerPicksGuideFirst)
+        {
+            computerGuide = ComputerChoices.ChooseGuide(noviceAvailable, veteranAvailable, computerGuards, computerCamelQuality);
+            if (computerGuide == "Novice") noviceAvailable = false;
+            if (computerGuide == "Veteran") veteranAvailable = false;
+            currentMessage += $"You chose {playerGuide} guide. Computer then chose {computerGuide} guide.\n";
+        }
+        else
+        {
+            currentMessage += $"You chose {playerGuide} guide.\n";
+        }
+
+        choosingGuide = false;
+        StartMarketPhase();
+    }
+
+    private void StartMarketPhase()
+    {
+        currentPhase = "market";
+        playerPicksMarketFirst = rand.Next(2) == 0;
+        currentMessage += playerPicksMarketFirst ? "You pick market first.\n" : "Computer picks market first.\n";
+
+        if (playerPicksMarketFirst)
+        {
+            choosingMarket = true;
+        }
+        else
+        {
+            computerMarket = ComputerChoices.ChooseMarket(computerGuards, computerGuide, unavailableMarkets, computerCamelQuality);
+            if (computerMarket != "Do Nothing")
+            {
+                unavailableMarkets = unavailableMarkets.Append(computerMarket).ToArray();
+                currentMessage += $"Computer chose {computerMarket}.\n";
+            }
+            else
+            {
+                currentMessage += "Computer chose to Do Nothing.\n";
+            }
+            choosingMarket = true;
+        }
+        StateHasChanged();
+    }
+
+    private async Task SubmitMarket()
+    {
+        playerMarket = availableMarkets.Contains(marketInput) ? marketInput : "Do Nothing";
+        if (playerMarket != "Do Nothing")
+        {
+            unavailableMarkets = unavailableMarkets.Append(playerMarket).ToArray();
+        }
+
+        if (playerPicksMarketFirst)
+        {
+            computerMarket = ComputerChoices.ChooseMarket(computerGuards, computerGuide, unavailableMarkets, computerCamelQuality);
+            if (computerMarket != "Do Nothing")
+            {
+                unavailableMarkets = unavailableMarkets.Append(computerMarket).ToArray();
+                currentMessage += $"You chose {playerMarket}. Computer then chose {computerMarket}.\n";
+            }
+            else
+            {
+                currentMessage += $"You chose {playerMarket}. Computer chose to Do Nothing.\n";
+            }
+        }
+        else
+        {
+            currentMessage += $"You chose {playerMarket}.\n";
+        }
+
+        choosingMarket = false;
+        currentPhase = "end";
+        EndRound();
+    }
+
+    private void EndRound()
+    {
+        double playerTravelRate = GetTravelRate(playerGuide);
+        double computerTravelRate = GetTravelRate(computerGuide);
+
+        double playerProfit = CalculateProfit(playerMarket, playerGuards, playerTravelRate, 500.0, playerCamelQuality);
+        double computerProfit = CalculateProfit(computerMarket, computerGuards, computerTravelRate, 500.0, computerCamelQuality);
+
+        playerGold += playerProfit;
+        computerGold += computerProfit;
+
+        var playerResult = ChooseBestMarket(500.0, 0.5, playerGuards, playerTravelRate, unavailableMarkets, playerCamelQuality);
+        var computerResult = ChooseBestMarket(500.0, 0.5, computerGuards, computerTravelRate, unavailableMarkets, computerCamelQuality);
+
+        currentMessage += "\nRound Summary:\n";
+        currentMessage += $"You sent a caravan with {playerGuards} guards and a {playerGuide} guide to {playerMarket}.\n";
+        currentMessage += playerMarket != "Do Nothing" ? $"Your caravan earned {playerProfit:F2} gold.\n{playerResult.Reasoning}\n" : "You stayed home and earned no profit.\n";
+        currentMessage += $"\nThe computer sent a caravan with {computerGuards} guards and a {computerGuide} guide to {computerMarket}.\n";
+        currentMessage += computerMarket != "Do Nothing" ? $"The computer's caravan earned {computerProfit:F2} gold.\n{computerResult.Reasoning}\n" : "The computer stayed home and earned no profit.\n";
+
+        roundNumber++;
+
+        if (playerGold >= 5000.0 || computerGold >= 5000.0)
+        {
+            gameOver = true;
+            currentMessage += "\nGame Over!\n";
+        }
+        StateHasChanged();
+    }
+
+    private void ContinueToNextRound()
+    {
+        if (!gameOver)
+        {
+            StartRound();
+        }
+    }
+
+    private void RestartGame()
+    {
+        playerGold = 500.0;
+        computerGold = 500.0;
+        roundNumber = 1;
+        gameOver = false;
+        StartRound();
+    }
+
+    private (string Market, double Score, string Reasoning) ChooseBestMarket(double caravanValue, double riskTolerance, int guards, double travelRate, string[] unavailableMarkets, double camelQuality)
+    {
+        var markets = new[]
+        {
+            ("Nearby Market", 100.0, 0.1, 500.0),
+            ("Medium Market", 500.0, 0.3, 1500.0),
+            ("Distant Market", 1000.0, 0.6, 3000.0)
+        };
+
+        string bestMarket = "Do Nothing";
+        double bestScore = 0.0;
+        string reasoning = "No market selected yet.";
+
+        double illiquidityCostPerDay = guards * 10.0;
+
+        foreach (var market in markets)
+        {
+            string name = market.Item1;
+            if (unavailableMarkets.Contains(name)) continue;
+
+            double distance = market.Item2;
+            double baseRisk = market.Item3;
+            double profit = market.Item4;
+
+            double adjustedRisk = Math.Max(0, baseRisk - (guards * 0.1));
+            double effectiveTravelRate = travelRate * camelQuality;
+            double travelTime = distance / (10.0 * effectiveTravelRate);
+            double illiquidityCost = travelTime * illiquidityCostPerDay;
+
+            if (illiquidityCost > profit) continue;
+
+            double expectedValue = profit - (caravanValue * adjustedRisk) - illiquidityCost;
+            double score = expectedValue / distance * (1 - adjustedRisk / riskTolerance);
+
+            string marketReasoning = $"Evaluated {name}: Profit = {profit:F2}, Risk = {adjustedRisk:F2}, Risk loss = {(caravanValue * adjustedRisk):F2}, Illiquidity = {illiquidityCost:F2}, Travel = {travelTime:F2} days, Score = {score:F2}";
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestMarket = name;
+                reasoning = marketReasoning + $"\nSelected {name} for highest score.";
+            }
+        }
+
+        if (bestMarket == "Do Nothing")
+        {
+            reasoning = "No market selected: All markets unavailable or unprofitable.";
+        }
+
+        return (bestMarket, bestScore, reasoning);
+    }
+
+    private double CalculateProfit(string market, int guards, double travelRate, double caravanValue, double camelQuality)
+    {
+        var markets = new[]
+        {
+            ("Nearby Market", 100.0, 0.1, 500.0),
+            ("Medium Market", 500.0, 0.3, 1500.0),
+            ("Distant Market", 1000.0, 0.6, 3000.0)
+        };
+
+        var selectedMarket = markets.FirstOrDefault(m => m.Item1 == market);
+        if (selectedMarket.Item1 == null) return 0.0;
+
+        double distance = selectedMarket.Item2;
+        double baseRisk = selectedMarket.Item3;
+        double profit = selectedMarket.Item4;
+        double adjustedRisk = Math.Max(0, baseRisk - (guards * 0.1));
+        double effectiveTravelRate = travelRate * camelQuality;
+        double travelTime = distance / (10.0 * effectiveTravelRate);
+        double illiquidityCost = travelTime * (guards * 10.0);
+
+        return profit - (caravanValue * adjustedRisk) - illiquidityCost;
+    }
+
+    private double GetTravelRate(string guide)
+    {
+        return guide == "Novice" ? 1.1 : guide == "Veteran" ? 1.3 : 1.0;
+    }
+
+    private string[] availableMarkets => new[] { "Nearby Market", "Medium Market", "Distant Market" }.Where(m => !unavailableMarkets.Contains(m)).ToArray();
+
+    private static class ComputerChoices
+    {
+        private static Random rand = new Random();
+
+        public static int ChooseGuards(int availableGuards, bool noviceAvailable, bool veteranAvailable, double camelQuality)
+        {
+            int bestGuards = 0;
+            double bestScore = -1.0;
+
+            for (int guards = 1; guards <= availableGuards; guards++)
+            {
+                double bestTravelRate = 1.0;
+                if (veteranAvailable) bestTravelRate = 1.3;
+                else if (noviceAvailable) bestTravelRate = 1.1;
+
+                var (market, score, _) = ChooseBestMarket(500.0, 0.5, guards, bestTravelRate, Array.Empty<string>(), camelQuality);
+                if (score > bestScore && market != "Do Nothing")
+                {
+                    bestScore = score;
+                    bestGuards = guards;
+                }
+            }
+
+            return bestGuards > 0 ? bestGuards : 1;
+        }
+
+        public static string ChooseGuide(bool noviceAvailable, bool veteranAvailable, int guards, double camelQuality)
+        {
+            string bestGuide = "None";
+            double bestScore = -1.0;
+
+            var guideOptions = new[] { (1.0, "None") };
+            if (noviceAvailable) guideOptions = guideOptions.Append((1.1, "Novice")).ToArray();
+            if (veteranAvailable) guideOptions = guideOptions.Append((1.3, "Veteran")).ToArray();
+
+            foreach (var guide in guideOptions)
+            {
+                var (market, score, _) = ChooseBestMarket(500.0, 0.5, guards, guide.Item1, Array.Empty<string>(), camelQuality);
+                if (score > bestScore && market != "Do Nothing")
+                {
+                    bestScore = score;
+                    bestGuide = guide.Item2;
+                }
+            }
+
+            return bestGuide;
+        }
+
+        public static string ChooseMarket(int guards, string guide, string[] unavailableMarkets, double camelQuality)
+        {
+            double travelRate = GetTravelRate(guide);
+            var (market, _, _) = ChooseBestMarket(500.0, 0.5, guards, travelRate, unavailableMarkets, camelQuality);
+            return market;
+        }
+
+        private static (string Market, double Score, string Reasoning) ChooseBestMarket(double caravanValue, double riskTolerance, int guards, double travelRate, string[] unavailableMarkets, double camelQuality)
+        {
+            var markets = new[]
+            {
+                ("Nearby Market", 100.0, 0.1, 500.0),
+                ("Medium Market", 500.0, 0.3, 1500.0),
+                ("Distant Market", 1000.0, 0.6, 3000.0)
+            };
+
+            string bestMarket = "Do Nothing";
+            double bestScore = 0.0;
+            string reasoning = "No market selected yet.";
+
+            double illiquidityCostPerDay = guards * 10.0;
+
+            foreach (var market in markets)
+            {
+                string name = market.Item1;
+                if (unavailableMarkets.Contains(name)) continue;
+
+                double distance = market.Item2;
+                double baseRisk = market.Item3;
+                double profit = market.Item4;
+
+                double adjustedRisk = Math.Max(0, baseRisk - (guards * 0.1));
+                double effectiveTravelRate = travelRate * camelQuality;
+                double travelTime = distance / (10.0 * effectiveTravelRate);
+                double illiquidityCost = travelTime * illiquidityCostPerDay;
+
+                if (illiquidityCost > profit) continue;
+
+                double expectedValue = profit - (caravanValue * adjustedRisk) - illiquidityCost;
+                double score = expectedValue / distance * (1 - adjustedRisk / riskTolerance);
+
+                string marketReasoning = $"Evaluated {name}: Profit = {profit:F2}, Risk = {adjustedRisk:F2}, Risk loss = {(caravanValue * adjustedRisk):F2}, Illiquidity = {illiquidityCost:F2}, Travel = {travelTime:F2} days, Score = {score:F2}";
+
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestMarket = name;
+                    reasoning = marketReasoning + $"\nSelected {name} for highest score.";
+                }
+            }
+
+            if (bestMarket == "Do Nothing")
+            {
+                reasoning = "No market selected: All markets unavailable or unprofitable.";
+            }
+
+            return (bestMarket, bestScore, reasoning);
+        }
+
+        private static double GetTravelRate(string guide)
+        {
+            return guide == "Novice" ? 1.1 : guide == "Veteran" ? 1.3 : 1.0;
+        }
+    }
+}
