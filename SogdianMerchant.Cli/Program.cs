@@ -103,6 +103,18 @@ namespace SogdianMerchant.Cli
                     }
                     double playerProfit = calc.CalculateProfit(playerMarket, playerGuards, playerGuide, 500.0, playerCamelQuality);
                     double computerProfit = calc.CalculateProfit(computerMarket, computerGuards, computerGuide, 500.0, computerCamelQuality);
+                    if (playerMarket != "Do Nothing")
+                    {
+                        if (playerMarket == "Baghdad Market") playerStats.BaghdadProfits.Add(playerProfit);
+                        else if (playerMarket == "Kashgar Market") playerStats.KashgarProfits.Add(playerProfit);
+                        else if (playerMarket == "Karachi Market") playerStats.KarachiProfits.Add(playerProfit);
+                    }
+                    if (computerMarket != "Do Nothing")
+                    {
+                        if (computerMarket == "Baghdad Market") playerStats.BaghdadProfits.Add(computerProfit);
+                        else if (computerMarket == "Kashgar Market") playerStats.KashgarProfits.Add(computerProfit);
+                        else if (computerMarket == "Karachi Market") playerStats.KarachiProfits.Add(computerProfit);
+                    }
                     playerGold += playerProfit;
                     computerGold += computerProfit;
                 }
@@ -155,6 +167,36 @@ namespace SogdianMerchant.Cli
             {
                 double perc = totalMarketsSecond > 0 ? (kv.Value / totalMarketsSecond * 100) : 0;
                 Console.WriteLine($"{kv.Key}: {perc:F2}%");
+            }
+
+            // Profit statistics
+            PrintProfitStats("Baghdad Market", playerStats.BaghdadProfits);
+            PrintProfitStats("Kashgar Market", playerStats.KashgarProfits);
+            PrintProfitStats("Karachi Market", playerStats.KarachiProfits);
+        }
+
+        private static void PrintProfitStats(string marketName, List<double> profits)
+        {
+            Console.WriteLine($"\nProfit Statistics for {marketName}:");
+            if (profits.Any())
+            {
+                double mean = profits.Average();
+                double variance = profits.Select(p => Math.Pow(p - mean, 2)).Average();
+                double stdDev = Math.Sqrt(variance);
+                Console.WriteLine($"Mean: {mean:F2}, Std Dev: {stdDev:F2}");
+                int count = profits.Count;
+                int within1 = profits.Count(p => Math.Abs(p - mean) <= stdDev);
+                int between1and2 = profits.Count(p => Math.Abs(p - mean) > stdDev && Math.Abs(p - mean) <= 2 * stdDev);
+                int between2and3 = profits.Count(p => Math.Abs(p - mean) > 2 * stdDev && Math.Abs(p - mean) <= 3 * stdDev);
+                int beyond3 = profits.Count(p => Math.Abs(p - mean) > 3 * stdDev);
+                Console.WriteLine($"<= 1 SD: {(within1 / (double)count * 100):F2}%");
+                Console.WriteLine($">1 and <=2 SD: {(between1and2 / (double)count * 100):F2}%");
+                Console.WriteLine($">2 and <=3 SD: {(between2and3 / (double)count * 100):F2}%");
+                Console.WriteLine($">3 SD: {(beyond3 / (double)count * 100):F2}%");
+            }
+            else
+            {
+                Console.WriteLine("No data");
             }
         }
     }

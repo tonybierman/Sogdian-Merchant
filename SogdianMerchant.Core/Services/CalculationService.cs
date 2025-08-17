@@ -12,7 +12,11 @@ namespace SogdianMerchant.Core.Services
 
         private double NextGaussian(double mean, double stdDev)
         {
-            double u1 = _rand.NextDouble();
+            double u1;
+            do
+            {
+                u1 = _rand.NextDouble();
+            } while (u1 == 0.0);
             double u2 = _rand.NextDouble();
             double normal = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2);
             return mean + stdDev * normal;
