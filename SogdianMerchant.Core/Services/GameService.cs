@@ -1,6 +1,6 @@
-﻿namespace SogdianMerchant.Core.Services
+﻿// GameService.cs (Modified)
+namespace SogdianMerchant.Core.Services
 {
-    // GameService.cs
     public class GameService : IGameService
     {
         public GameState State { get; } = new GameState();
@@ -24,6 +24,20 @@
             State.NoviceAvailable = true;
             State.VeteranAvailable = true;
             State.UnavailableMarkets = Array.Empty<string>();
+
+            if (_rand.NextDouble() < 0.05) State.AvailableGuards = 0; // Resource scarcity
+            if (_rand.NextDouble() < 0.05)
+            {
+                State.NoviceAvailable = false;
+                State.VeteranAvailable = false;
+            }
+
+            // Random market unavailability
+            if (_rand.NextDouble() < 0.2)
+            {
+                var randomMarket = new[] { "Bukhara Market", "Jankent Market", "Karachi Market" }[_rand.Next(3)];
+                State.UnavailableMarkets = new[] { randomMarket };
+            }
 
             StartGuardsPhase();
         }
@@ -169,6 +183,7 @@
 
         public void EndRound()
         {
+            double riskTolerance = _rand.NextDouble(0.3, 0.7); // Random risk tolerance
             double playerTravelRate = _calculationService.GetTravelRate(State.PlayerGuide);
             double computerTravelRate = _calculationService.GetTravelRate(State.ComputerGuide);
 
@@ -178,8 +193,8 @@
             State.PlayerGold += playerProfit;
             State.ComputerGold += computerProfit;
 
-            var playerResult = _calculationService.ChooseBestMarket(500.0, 0.5, State.PlayerGuards, playerTravelRate, State.UnavailableMarkets, State.PlayerCamelQuality);
-            var computerResult = _calculationService.ChooseBestMarket(500.0, 0.5, State.ComputerGuards, computerTravelRate, State.UnavailableMarkets, State.ComputerCamelQuality);
+            var playerResult = _calculationService.ChooseBestMarket(500.0, riskTolerance, State.PlayerGuards, playerTravelRate, State.UnavailableMarkets, State.PlayerCamelQuality);
+            var computerResult = _calculationService.ChooseBestMarket(500.0, riskTolerance, State.ComputerGuards, computerTravelRate, State.UnavailableMarkets, State.ComputerCamelQuality);
 
             State.CurrentMessage += "\nRound Summary:\n";
             State.CurrentMessage += $"You sent a caravan with {State.PlayerGuards} guards and a {State.PlayerGuide} guide to {State.PlayerMarket}.\n";

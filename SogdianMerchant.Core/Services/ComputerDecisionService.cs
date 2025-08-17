@@ -1,6 +1,6 @@
-﻿namespace SogdianMerchant.Core.Services
+﻿// ComputerDecisionService.cs (Modified)
+namespace SogdianMerchant.Core.Services
 {
-    // ComputerDecisionService.cs
     public class ComputerDecisionService : IComputerDecisionService
     {
         private readonly ICalculationService _calculationService;

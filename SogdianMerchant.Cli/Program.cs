@@ -12,7 +12,8 @@ namespace SogdianMerchant.Cli
             int ties = 0;
             const int numGames = 1000;
             Random random = new Random();
-            ICalculationService calc = new CalculationService();
+            IRandomGenerator randGen = new RandomGenerator();
+            ICalculationService calc = new CalculationService(randGen);
             IComputerDecisionService compDec = new ComputerDecisionService(calc);
             OptimalDecisionService optDec = new OptimalDecisionService(calc, compDec);
             Stats playerStats = new Stats();

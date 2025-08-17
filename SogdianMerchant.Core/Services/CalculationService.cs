@@ -1,31 +1,47 @@
-﻿namespace SogdianMerchant.Core.Services
+﻿// CalculationService.cs (Modified)
+namespace SogdianMerchant.Core.Services
 {
-    // CalculationService.cs
     public class CalculationService : ICalculationService
     {
-        private static readonly Market[] Markets =
+        private readonly IRandomGenerator _rand;
+
+        public CalculationService(IRandomGenerator rand)
         {
-            new("Bukhara Market", 280, 0.1, 500.0),
-            new("Jankent Market", 780.0, 0.3, 1500.0),
-            new("Karachi Market", 2217.0, 0.6, 3000.0)
-        };
+            _rand = rand;
+        }
+
+        private Market[] GetDynamicMarkets()
+        {
+            return new[]
+            {
+                new Market("Bukhara Market", 280 * (1 + _rand.NextDouble(-0.2, 0.2)), 0.1 * (1 + _rand.NextDouble(-0.1, 0.1)), 500.0 * (1 + _rand.NextDouble(-0.2, 0.2))),
+                new Market("Jankent Market", 780.0 * (1 + _rand.NextDouble(-0.2, 0.2)), 0.3 * (1 + _rand.NextDouble(-0.1, 0.1)), 1500.0 * (1 + _rand.NextDouble(-0.2, 0.2))),
+                new Market("Karachi Market", 2217.0 * (1 + _rand.NextDouble(-0.2, 0.2)), 0.6 * (1 + _rand.NextDouble(-0.1, 0.1)), 3000.0 * (1 + _rand.NextDouble(-0.2, 0.2)))
+            };
+        }
 
         public double GetTravelRate(string guide)
         {
-            return guide == "Novice" ? 1.1 : guide == "Veteran" ? 1.3 : 1.0;
+            double baseRate = guide == "Novice" ? 1.1 : guide == "Veteran" ? 1.3 : 1.0;
+            double modifier = _rand.NextDouble() < 0.2 ? _rand.NextDouble(0.8, 1.2) : 1.0; // 20% chance of randomization
+            if (guide != "None" && _rand.NextDouble() < 0.1) modifier *= 0.8; // 10% failure chance
+            return baseRate * modifier;
         }
 
         public double CalculateProfit(string market, int guards, double travelRate, double caravanValue, double camelQuality)
         {
-            var selectedMarket = Markets.FirstOrDefault(m => m.Name == market);
+            var markets = GetDynamicMarkets();
+            var selectedMarket = markets.FirstOrDefault(m => m.Name == market);
             if (selectedMarket == null) return 0.0;
 
             double distance = selectedMarket.Distance;
             double baseRisk = selectedMarket.BaseRisk;
-            double profit = selectedMarket.Profit;
-            double adjustedRisk = Math.Max(0, baseRisk - (guards * 0.1));
+            double profit = selectedMarket.Profit * camelQuality * 1.5; // Increased influence
+            double guardEffect = _rand.NextDouble(0.05, 0.15);
+            double adjustedRisk = Math.Max(0, baseRisk - (guards * guardEffect));
             double effectiveTravelRate = travelRate * camelQuality;
             double travelTime = distance / (10.0 * effectiveTravelRate);
+            if (_rand.NextDouble() < 0.05 && camelQuality < 0.9) travelTime *= 2; // Rare poor camel event
             double illiquidityCost = travelTime * (guards * 10.0);
 
             return profit - (caravanValue * adjustedRisk) - illiquidityCost;
@@ -38,19 +54,22 @@
             string reasoning = "No market selected yet.";
 
             double illiquidityCostPerDay = guards * 10.0;
+            var markets = GetDynamicMarkets();
 
-            foreach (var market in Markets)
+            foreach (var market in markets)
             {
                 string name = market.Name;
                 if (unavailableMarkets.Contains(name)) continue;
 
                 double distance = market.Distance;
                 double baseRisk = market.BaseRisk;
-                double profit = market.Profit;
+                double profit = market.Profit * camelQuality * 1.5; // Increased influence
 
-                double adjustedRisk = Math.Max(0, baseRisk - (guards * 0.1));
+                double guardEffect = _rand.NextDouble(0.05, 0.15);
+                double adjustedRisk = Math.Max(0, baseRisk - (guards * guardEffect));
                 double effectiveTravelRate = travelRate * camelQuality;
                 double travelTime = distance / (10.0 * effectiveTravelRate);
+                if (_rand.NextDouble() < 0.05 && camelQuality < 0.9) travelTime *= 2; // Rare poor camel event
                 double illiquidityCost = travelTime * illiquidityCostPerDay;
 
                 if (illiquidityCost > profit) continue;
