@@ -1,4 +1,4 @@
-﻿namespace SogdianMerchant.Services
+﻿namespace SogdianMerchant.Core.Services
 {
     // IRandomGenerator.cs
     public interface IRandomGenerator

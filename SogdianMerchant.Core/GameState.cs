@@ -1,4 +1,4 @@
-﻿namespace SogdianMerchant
+﻿namespace SogdianMerchant.Core
 {
     // GameState.cs
     public class GameState

@@ -1,4 +1,4 @@
-﻿namespace SogdianMerchant.Services
+﻿namespace SogdianMerchant.Core.Services
 {
     // ComputerDecisionService.cs
     public class ComputerDecisionService : IComputerDecisionService

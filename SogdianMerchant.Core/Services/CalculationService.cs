@@ -1,4 +1,4 @@
-﻿namespace SogdianMerchant.Services
+﻿namespace SogdianMerchant.Core.Services
 {
     // CalculationService.cs
     public class CalculationService : ICalculationService

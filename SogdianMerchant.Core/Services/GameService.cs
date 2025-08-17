@@ -1,4 +1,4 @@
-﻿namespace SogdianMerchant.Services
+﻿namespace SogdianMerchant.Core.Services
 {
     // GameService.cs
     public class GameService : IGameService
@@ -183,9 +183,9 @@
 
             State.CurrentMessage += "\nRound Summary:\n";
             State.CurrentMessage += $"You sent a caravan with {State.PlayerGuards} guards and a {State.PlayerGuide} guide to {State.PlayerMarket}.\n";
-            State.CurrentMessage += State.PlayerMarket != "Do Nothing" ? $"Your caravan earned {playerProfit:F2} gold.\n{playerResult.Reasoning}\n" : "You stayed home and earned no profit.\n";
+            State.CurrentMessage += State.PlayerMarket != "Do Nothing" ? $"Your caravan earned {playerProfit:F2} gold.\n" : "You stayed home and earned no profit.\n";
             State.CurrentMessage += $"\nThe computer sent a caravan with {State.ComputerGuards} guards and a {State.ComputerGuide} guide to {State.ComputerMarket}.\n";
-            State.CurrentMessage += State.ComputerMarket != "Do Nothing" ? $"The computer's caravan earned {computerProfit:F2} gold.\n{computerResult.Reasoning}\n" : "The computer stayed home and earned no profit.\n";
+            State.CurrentMessage += State.ComputerMarket != "Do Nothing" ? $"The computer's caravan earned {computerProfit:F2} gold.\n" : "The computer stayed home and earned no profit.\n";
 
             State.RoundNumber++;
 

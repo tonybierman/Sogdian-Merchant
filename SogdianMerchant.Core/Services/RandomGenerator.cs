@@ -1,4 +1,4 @@
-﻿namespace SogdianMerchant.Services
+﻿namespace SogdianMerchant.Core.Services
 {
     // RandomGenerator.cs
     public class RandomGenerator : IRandomGenerator
