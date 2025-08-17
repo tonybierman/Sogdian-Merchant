@@ -1,4 +1,5 @@
-﻿namespace SogdianMerchant.Core.Services
+﻿// GameService.cs (Improved)
+namespace SogdianMerchant.Core.Services
 {
     public interface IGameService
     {

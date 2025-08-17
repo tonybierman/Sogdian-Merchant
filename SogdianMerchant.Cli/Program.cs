@@ -1,4 +1,5 @@
-﻿using SogdianMerchant.Cli.Services;
+﻿// Program.cs (Updated)
+using SogdianMerchant.Cli.Services;
 using SogdianMerchant.Core.Services;
 
 namespace SogdianMerchant.Cli
@@ -100,10 +101,8 @@ namespace SogdianMerchant.Cli
                     {
                         playerStats.MarketsWhenSecond[playerMarket]++;
                     }
-                    double playerTravelRate = calc.GetTravelRate(playerGuide);
-                    double computerTravelRate = calc.GetTravelRate(computerGuide);
-                    double playerProfit = calc.CalculateProfit(playerMarket, playerGuards, playerTravelRate, 500.0, playerCamelQuality);
-                    double computerProfit = calc.CalculateProfit(computerMarket, computerGuards, computerTravelRate, 500.0, computerCamelQuality);
+                    double playerProfit = calc.CalculateProfit(playerMarket, playerGuards, playerGuide, 500.0, playerCamelQuality);
+                    double computerProfit = calc.CalculateProfit(computerMarket, computerGuards, computerGuide, 500.0, computerCamelQuality);
                     playerGold += playerProfit;
                     computerGold += computerProfit;
                 }

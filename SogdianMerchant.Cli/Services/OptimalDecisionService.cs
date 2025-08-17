@@ -1,4 +1,5 @@
-﻿using SogdianMerchant.Core.Services;
+﻿// OptimalDecisionService.cs (Updated)
+using SogdianMerchant.Core.Services;
 
 namespace SogdianMerchant.Cli.Services
 {
@@ -84,8 +85,8 @@ namespace SogdianMerchant.Cli.Services
                 {
                     currentComputerMarket = computerMarket ?? throw new ArgumentNullException(nameof(computerMarket));
                 }
-                double playerProfit = _calculationService.CalculateProfit(playerMarket, playerGuards, _calculationService.GetTravelRate(playerGuide), 500.0, playerCamelQuality);
-                double computerProfit = _calculationService.CalculateProfit(currentComputerMarket, computerGuards, _calculationService.GetTravelRate(computerGuide), 500.0, computerCamelQuality);
+                double playerProfit = _calculationService.CalculateProfit(playerMarket, playerGuards, playerGuide, 500.0, playerCamelQuality);
+                double computerProfit = _calculationService.CalculateProfit(currentComputerMarket, computerGuards, computerGuide, 500.0, computerCamelQuality);
                 double diff = playerProfit - computerProfit;
                 if (diff > bestDiff)
                 {
@@ -146,8 +147,8 @@ namespace SogdianMerchant.Cli.Services
                 {
                     string[] tempUnavailable = playerMarket == "Do Nothing" ? Array.Empty<string>() : new[] { playerMarket };
                     string computerMarket = _computerDecisionService.ChooseMarket(computerGuards, computerGuide, tempUnavailable, computerCamelQuality);
-                    double playerProfit = _calculationService.CalculateProfit(playerMarket, playerGuards, _calculationService.GetTravelRate(playerGuide), 500.0, playerCamelQuality);
-                    double computerProfit = _calculationService.CalculateProfit(computerMarket, computerGuards, _calculationService.GetTravelRate(computerGuide), 500.0, computerCamelQuality);
+                    double playerProfit = _calculationService.CalculateProfit(playerMarket, playerGuards, playerGuide, 500.0, playerCamelQuality);
+                    double computerProfit = _calculationService.CalculateProfit(computerMarket, computerGuards, computerGuide, 500.0, computerCamelQuality);
                     double diff = playerProfit - computerProfit;
                     if (diff > bestDiff) bestDiff = diff;
                 }
@@ -161,8 +162,8 @@ namespace SogdianMerchant.Cli.Services
                 possible.Add("Do Nothing");
                 foreach (var playerMarket in possible)
                 {
-                    double playerProfit = _calculationService.CalculateProfit(playerMarket, playerGuards, _calculationService.GetTravelRate(playerGuide), 500.0, playerCamelQuality);
-                    double computerProfit = _calculationService.CalculateProfit(computerMarket, computerGuards, _calculationService.GetTravelRate(computerGuide), 500.0, computerCamelQuality);
+                    double playerProfit = _calculationService.CalculateProfit(playerMarket, playerGuards, playerGuide, 500.0, playerCamelQuality);
+                    double computerProfit = _calculationService.CalculateProfit(computerMarket, computerGuards, computerGuide, 500.0, computerCamelQuality);
                     double diff = playerProfit - computerProfit;
                     if (diff > bestDiff) bestDiff = diff;
                 }
