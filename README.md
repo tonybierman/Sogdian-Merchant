@@ -12,7 +12,7 @@ To increase variability in the Sogdian Merchant game, where the optimal strategy
 
 4. **Camel Quality Impact**: Increase camel quality's influence on profit (e.g., scale profit by camel quality more significantly) and introduce rare events where poor camel quality drastically increases travel time, making "Do Nothing" occasionally viable.
 
-5. **Market Availability Events**: Randomly make markets unavailable some rounds due to events (e.g., bandit raids, political unrest), forcing players to adapt to Bukhara or Jankent more often.
+5. **Market Availability Events**: Randomly make markets unavailable some rounds due to events (e.g., bandit raids, political unrest), forcing players to adapt to Baghdad or Kashgar more often.
 
 6. **Risk Tolerance Variation**: Adjust player and computer risk tolerance randomly each round (e.g., 0.3-0.7 instead of fixed 0.5), impacting market choice scores and diversifying outcomes.
 

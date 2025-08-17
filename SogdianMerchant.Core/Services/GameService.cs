@@ -35,7 +35,7 @@ namespace SogdianMerchant.Core.Services
             // Random market unavailability
             if (_rand.NextDouble() < 0.2)
             {
-                var randomMarket = new[] { "Bukhara Market", "Jankent Market", "Karachi Market" }[_rand.Next(3)];
+                var randomMarket = new[] { "Baghdad Market", "Kashgar Market", "Karachi Market" }[_rand.Next(3)];
                 State.UnavailableMarkets = new[] { randomMarket };
             }
 

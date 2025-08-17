@@ -11,7 +11,7 @@ namespace SogdianMerchant.Cli
             int playerWins = 0;
             int computerWins = 0;
             int ties = 0;
-            const int numGames = 1000;
+            const int numGames = 10000;
             Random random = new Random();
             IRandomGenerator randGen = new RandomGenerator();
             ICalculationService calc = new CalculationService(randGen);

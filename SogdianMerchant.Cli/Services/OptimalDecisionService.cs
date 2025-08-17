@@ -69,7 +69,7 @@ namespace SogdianMerchant.Cli.Services
         {
             string bestMarket = "Do Nothing";
             double bestDiff = double.MinValue;
-            string[] allMarkets = { "Bukhara Market", "Jankent Market", "Karachi Market" };
+            string[] allMarkets = { "Baghdad Market", "Kashgar Market", "Karachi Market" };
             List<string> possible = allMarkets.Where(m => !unavailableMarkets.Contains(m)).ToList();
             possible.Add("Do Nothing");
             foreach (var playerMarket in possible)
@@ -138,7 +138,7 @@ namespace SogdianMerchant.Cli.Services
         private double GetBestDiffFromMarket(int playerGuards, string playerGuide, int computerGuards, string computerGuide, bool playerPicksMarketFirst, double playerCamelQuality, double computerCamelQuality)
         {
             double bestDiff = double.MinValue;
-            string[] allMarkets = { "Bukhara Market", "Jankent Market", "Karachi Market" };
+            string[] allMarkets = { "Baghdad Market", "Kashgar Market", "Karachi Market" };
             if (playerPicksMarketFirst)
             {
                 List<string> possible = allMarkets.ToList();

@@ -59,7 +59,7 @@ namespace SogdianMerchant.Tests
             _gameService.State.ChoosingMarket = true;
             _gameService.State.CurrentPhase = "market";
             //_gameService.State.AvailableMarkets = new[] { "MarketA", "MarketB" };
-            _gameService.State.MarketInput = "Bukhara Market";
+            _gameService.State.MarketInput = "Baghdad Market";
             _gameService.SubmitMarket();
 
             // End phase

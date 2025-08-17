@@ -12,7 +12,7 @@ namespace SogdianMerchant.Cli
         public List<int> GuardsWhenSecond { get; } = new List<int>();
         public Dictionary<string, int> GuidesWhenFirst { get; } = new Dictionary<string, int> { ["None"] = 0, ["Novice"] = 0, ["Veteran"] = 0 };
         public Dictionary<string, int> GuidesWhenSecond { get; } = new Dictionary<string, int> { ["None"] = 0, ["Novice"] = 0, ["Veteran"] = 0 };
-        public Dictionary<string, int> MarketsWhenFirst { get; } = new Dictionary<string, int> { ["Do Nothing"] = 0, ["Bukhara Market"] = 0, ["Jankent Market"] = 0, ["Karachi Market"] = 0 };
-        public Dictionary<string, int> MarketsWhenSecond { get; } = new Dictionary<string, int> { ["Do Nothing"] = 0, ["Bukhara Market"] = 0, ["Jankent Market"] = 0, ["Karachi Market"] = 0 };
+        public Dictionary<string, int> MarketsWhenFirst { get; } = new Dictionary<string, int> { ["Do Nothing"] = 0, ["Baghdad Market"] = 0, ["Kashgar Market"] = 0, ["Karachi Market"] = 0 };
+        public Dictionary<string, int> MarketsWhenSecond { get; } = new Dictionary<string, int> { ["Do Nothing"] = 0, ["Baghdad Market"] = 0, ["Kashgar Market"] = 0, ["Karachi Market"] = 0 };
     }
 }

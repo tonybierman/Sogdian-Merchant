@@ -14,8 +14,8 @@ namespace SogdianMerchant.Core.Services
         {
             return new[]
             {
-                new Market("Bukhara Market", 280 * (1 + _rand.NextDouble(-0.2, 0.2)), 0.1 * (1 + _rand.NextDouble(-0.1, 0.1)), 500.0 * (1 + _rand.NextDouble(-0.2, 0.2))),
-                new Market("Jankent Market", 780.0 * (1 + _rand.NextDouble(-0.2, 0.2)), 0.3 * (1 + _rand.NextDouble(-0.1, 0.1)), 1500.0 * (1 + _rand.NextDouble(-0.2, 0.2))),
+                new Market("Baghdad Market", 2100.0 * (1 + _rand.NextDouble(-0.2, 0.2)), 0.1 * (1 + _rand.NextDouble(-0.1, 0.1)), 500.0 * (1 + _rand.NextDouble(-0.2, 0.2))),
+                new Market("Kashgar Market", 1000.0 * (1 + _rand.NextDouble(-0.2, 0.2)), 0.3 * (1 + _rand.NextDouble(-0.1, 0.1)), 1500.0 * (1 + _rand.NextDouble(-0.2, 0.2))),
                 new Market("Karachi Market", 2217.0 * (1 + _rand.NextDouble(-0.2, 0.2)), 0.6 * (1 + _rand.NextDouble(-0.1, 0.1)), 3000.0 * (1 + _rand.NextDouble(-0.2, 0.2)))
             };
         }
@@ -63,7 +63,7 @@ namespace SogdianMerchant.Core.Services
 
             if (_rand.NextDouble() < adjustedRisk)
             {
-                return -illiquidityCost - guideCost;
+                return -caravanValue - illiquidityCost - guideCost;
             }
             return profit - illiquidityCost - guideCost;
         }
@@ -99,7 +99,7 @@ namespace SogdianMerchant.Core.Services
 
                 if (illiquidityCost + guideCost > profit) continue;
 
-                double expectedValue = (1 - adjustedRisk) * profit - illiquidityCost - guideCost;
+                double expectedValue = (1 - adjustedRisk) * profit + adjustedRisk * (-caravanValue) - illiquidityCost - guideCost;
                 double score = expectedValue / distance * (1 - adjustedRisk / riskTolerance);
 
                 string marketReasoning = $"Evaluated {name}: Profit = {profit:F2}, Risk = {adjustedRisk:F2}, Illiquidity = {illiquidityCost:F2}, Guide Cost = {guideCost:F2}, Travel = {travelTime:F2} days, Score = {score:F2}";
