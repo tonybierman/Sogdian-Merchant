@@ -56,11 +56,8 @@ namespace SogdianMerchant.Core
         public const string KarachiMarket = "Karachi Market";
         public static readonly string[] AllMarkets = new[] { BaghdadMarket, KashgarMarket, KarachiMarket };
         public const double BaseDistanceBaghdad = 2100.0;
-        public const double BaseRiskBaghdad = 0.1;
         public const double BaseDistanceKashgar = 1000.0;
-        public const double BaseRiskKashgar = 0.3;
         public const double BaseDistanceKarachi = 2217.0;
-        public const double BaseRiskKarachi = 0.6;
         public const double ProfitMultiplierK = 3.0;
         public const double BaseProfitBaghdad = ProfitMultiplierK * BaseRiskBaghdad * BaseDistanceBaghdad;
         public const double BaseProfitKashgar = ProfitMultiplierK * BaseRiskKashgar * BaseDistanceKashgar;
@@ -94,5 +91,9 @@ namespace SogdianMerchant.Core
         public const double TravelDelayMultiplier = 2.0;
         public const double IlliquidityCostPerDayPerGuard = 5.0;
         public const int InitialRoundNumber = 1;
+
+        public const double BaseRiskBaghdad = 0.2;
+        public const double BaseRiskKashgar = 0.3;
+        public const double BaseRiskKarachi = 0.25;
     }
 }

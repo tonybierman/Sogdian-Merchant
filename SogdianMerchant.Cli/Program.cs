@@ -1,4 +1,5 @@
 ﻿using SogdianMerchant.Cli.Services;
+using SogdianMerchant.Core;
 using SogdianMerchant.Core.Services;
 
 namespace SogdianMerchant.Cli
@@ -198,6 +199,18 @@ namespace SogdianMerchant.Cli
                 Console.WriteLine($">1 and <=2 SD: {(between1and2 / (double)count * 100):F2}%");
                 Console.WriteLine($">2 and <=3 SD: {(between2and3 / (double)count * 100):F2}%");
                 Console.WriteLine($">3 SD: {(beyond3 / (double)count * 100):F2}%");
+                double distance = marketName switch
+                {
+                    "Baghdad Market" => GameState.BaseDistanceBaghdad,
+                    "Kashgar Market" => GameState.BaseDistanceKashgar,
+                    "Karachi Market" => GameState.BaseDistanceKarachi,
+                    _ => 0
+                };
+                if (distance > 0)
+                {
+                    double ratio = mean / distance;
+                    Console.WriteLine($"Avg Profit / Distance: {ratio:F2}");
+                }
             }
             else
             {
