@@ -1,5 +1,4 @@
-﻿// Program.cs (Updated)
-using SogdianMerchant.Cli.Services;
+﻿using SogdianMerchant.Cli.Services;
 using SogdianMerchant.Core.Services;
 
 namespace SogdianMerchant.Cli
@@ -18,10 +17,12 @@ namespace SogdianMerchant.Cli
             IComputerDecisionService compDec = new ComputerDecisionService(calc);
             OptimalDecisionService optDec = new OptimalDecisionService(calc, compDec);
             Stats playerStats = new Stats();
+            long totalRounds = 0;
             for (int game = 0; game < numGames; game++)
             {
                 double playerGold = 500.0;
                 double computerGold = 500.0;
+                int rounds = 0;
                 while (playerGold < 5000.0 && computerGold < 5000.0)
                 {
                     double playerCamelQuality = random.NextDouble() * 0.4 + 0.8;
@@ -117,7 +118,9 @@ namespace SogdianMerchant.Cli
                     }
                     playerGold += playerProfit;
                     computerGold += computerProfit;
+                    rounds++;
                 }
+                totalRounds += rounds;
                 if (playerGold >= 5000.0 && computerGold < 5000.0) playerWins++;
                 else if (computerGold >= 5000.0 && playerGold < 5000.0) computerWins++;
                 else ties++;
@@ -126,6 +129,8 @@ namespace SogdianMerchant.Cli
             Console.WriteLine($"Player (optimal) wins: {playerWins}");
             Console.WriteLine($"Computer (heuristic) wins: {computerWins}");
             Console.WriteLine($"Ties: {ties}");
+            double meanRounds = (double)totalRounds / numGames;
+            Console.WriteLine($"Mean rounds to victory: {meanRounds:F2}");
 
             // Statistical summary for optimal player choices
             Console.WriteLine("\nOptimal Player Statistical Summary:");
