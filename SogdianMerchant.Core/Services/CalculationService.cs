@@ -10,13 +10,32 @@ namespace SogdianMerchant.Core.Services
             _rand = rand;
         }
 
+        private double NextGaussian(double mean, double stdDev)
+        {
+            double u1 = _rand.NextDouble();
+            double u2 = _rand.NextDouble();
+            double normal = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2);
+            return mean + stdDev * normal;
+        }
+
         private Market[] GetDynamicMarkets()
         {
+            double profitStd = GameState.MarketVariationProfit / Math.Sqrt(3.0);
+
             return new[]
             {
-                new Market(GameState.BaghdadMarket, GameState.BaseDistanceBaghdad * (1 + _rand.NextDouble(-GameState.MarketVariationDistance, GameState.MarketVariationDistance)), GameState.BaseRiskBaghdad * (1 + _rand.NextDouble(-GameState.MarketVariationRisk, GameState.MarketVariationRisk)), GameState.BaseProfitBaghdad * (1 + _rand.NextDouble(-GameState.MarketVariationProfit, GameState.MarketVariationProfit))),
-                new Market(GameState.KashgarMarket, GameState.BaseDistanceKashgar * (1 + _rand.NextDouble(-GameState.MarketVariationDistance, GameState.MarketVariationDistance)), GameState.BaseRiskKashgar * (1 + _rand.NextDouble(-GameState.MarketVariationRisk, GameState.MarketVariationRisk)), GameState.BaseProfitKashgar * (1 + _rand.NextDouble(-GameState.MarketVariationProfit, GameState.MarketVariationProfit))),
-                new Market(GameState.KarachiMarket, GameState.BaseDistanceKarachi * (1 + _rand.NextDouble(-GameState.MarketVariationDistance, GameState.MarketVariationDistance)), GameState.BaseRiskKarachi * (1 + _rand.NextDouble(-GameState.MarketVariationRisk, GameState.MarketVariationRisk)), GameState.BaseProfitKarachi * (1 + _rand.NextDouble(-GameState.MarketVariationProfit, GameState.MarketVariationProfit)))
+                new Market(GameState.BaghdadMarket,
+                    GameState.BaseDistanceBaghdad * (1 + _rand.NextDouble(-GameState.MarketVariationDistance, GameState.MarketVariationDistance)),
+                    GameState.BaseRiskBaghdad * (1 + _rand.NextDouble(-GameState.MarketVariationRisk, GameState.MarketVariationRisk)),
+                    Math.Max(0.0, GameState.BaseProfitBaghdad * NextGaussian(1.0, profitStd))),
+                new Market(GameState.KashgarMarket,
+                    GameState.BaseDistanceKashgar * (1 + _rand.NextDouble(-GameState.MarketVariationDistance, GameState.MarketVariationDistance)),
+                    GameState.BaseRiskKashgar * (1 + _rand.NextDouble(-GameState.MarketVariationRisk, GameState.MarketVariationRisk)),
+                    Math.Max(0.0, GameState.BaseProfitKashgar * NextGaussian(1.0, profitStd))),
+                new Market(GameState.KarachiMarket,
+                    GameState.BaseDistanceKarachi * (1 + _rand.NextDouble(-GameState.MarketVariationDistance, GameState.MarketVariationDistance)),
+                    GameState.BaseRiskKarachi * (1 + _rand.NextDouble(-GameState.MarketVariationRisk, GameState.MarketVariationRisk)),
+                    Math.Max(0.0, GameState.BaseProfitKarachi * NextGaussian(1.0, profitStd)))
             };
         }
 

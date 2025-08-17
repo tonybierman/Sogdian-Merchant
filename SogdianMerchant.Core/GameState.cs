@@ -57,13 +57,14 @@ namespace SogdianMerchant.Core
         public static readonly string[] AllMarkets = new[] { BaghdadMarket, KashgarMarket, KarachiMarket };
         public const double BaseDistanceBaghdad = 2100.0;
         public const double BaseRiskBaghdad = 0.1;
-        public const double BaseProfitBaghdad = 500.0;
         public const double BaseDistanceKashgar = 1000.0;
         public const double BaseRiskKashgar = 0.3;
-        public const double BaseProfitKashgar = 1500.0;
         public const double BaseDistanceKarachi = 2217.0;
         public const double BaseRiskKarachi = 0.6;
-        public const double BaseProfitKarachi = 3000.0;
+        public const double ProfitMultiplierK = 3.0;
+        public const double BaseProfitBaghdad = ProfitMultiplierK * BaseRiskBaghdad * BaseDistanceBaghdad;
+        public const double BaseProfitKashgar = ProfitMultiplierK * BaseRiskKashgar * BaseDistanceKashgar;
+        public const double BaseProfitKarachi = ProfitMultiplierK * BaseRiskKarachi * BaseDistanceKarachi;
         public const double MarketVariationDistance = 0.2;
         public const double MarketVariationRisk = 0.1;
         public const double MarketVariationProfit = 0.2;
