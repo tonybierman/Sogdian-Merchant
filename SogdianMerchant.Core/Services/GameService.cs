@@ -18,24 +18,24 @@ namespace SogdianMerchant.Core.Services
         public void StartRound()
         {
             State.CurrentMessage = $"Round {State.RoundNumber} begins!\n";
-            State.PlayerCamelQuality = _rand.NextDouble() * 0.4 + 0.8;
-            State.ComputerCamelQuality = _rand.NextDouble() * 0.4 + 0.8;
+            State.PlayerCamelQuality = _rand.NextDouble() * GameState.CamelQualityVariation + GameState.MinCamelQuality;
+            State.ComputerCamelQuality = _rand.NextDouble() * GameState.CamelQualityVariation + GameState.MinCamelQuality;
             State.AvailableGuards = GameState.TotalGuards;
             State.NoviceAvailable = true;
             State.VeteranAvailable = true;
             State.UnavailableMarkets = Array.Empty<string>();
 
-            if (_rand.NextDouble() < 0.05) State.AvailableGuards = 0; // Resource scarcity
-            if (_rand.NextDouble() < 0.05)
+            if (_rand.NextDouble() < GameState.GuardScarcityProbability) State.AvailableGuards = 0; // Resource scarcity
+            if (_rand.NextDouble() < GameState.GuideUnavailabilityProbability)
             {
                 State.NoviceAvailable = false;
                 State.VeteranAvailable = false;
             }
 
             // Random market unavailability
-            if (_rand.NextDouble() < 0.2)
+            if (_rand.NextDouble() < GameState.MarketUnavailabilityProbability)
             {
-                var randomMarket = new[] { "Baghdad Market", "Kashgar Market", "Karachi Market" }[_rand.Next(3)];
+                var randomMarket = GameState.AllMarkets[_rand.Next(GameState.AllMarkets.Length)];
                 State.UnavailableMarkets = new[] { randomMarket };
             }
 
@@ -63,7 +63,7 @@ namespace SogdianMerchant.Core.Services
 
         public void SubmitGuards()
         {
-            State.PlayerGuards = Math.Clamp(State.GuardInput, 1, State.AvailableGuards);
+            State.PlayerGuards = Math.Clamp(State.GuardInput, GameState.MinGuards, State.AvailableGuards);
             State.AvailableGuards -= State.PlayerGuards;
             if (State.PlayerPicksGuardsFirst)
             {
@@ -93,8 +93,8 @@ namespace SogdianMerchant.Core.Services
             else
             {
                 State.ComputerGuide = _computerDecisionService.ChooseGuide(State.NoviceAvailable, State.VeteranAvailable, State.ComputerGuards, State.ComputerCamelQuality);
-                if (State.ComputerGuide == "Novice") State.NoviceAvailable = false;
-                if (State.ComputerGuide == "Veteran") State.VeteranAvailable = false;
+                if (State.ComputerGuide == GameState.GuideNovice) State.NoviceAvailable = false;
+                if (State.ComputerGuide == GameState.GuideVeteran) State.VeteranAvailable = false;
                 State.CurrentMessage += $"Computer chose {State.ComputerGuide} guide.\n";
                 State.ChoosingGuide = true;
             }
@@ -103,16 +103,16 @@ namespace SogdianMerchant.Core.Services
         public void SubmitGuide()
         {
             State.PlayerGuide = State.GuideInput;
-            if (State.PlayerGuide == "Novice" && State.NoviceAvailable) State.NoviceAvailable = false;
-            else if (State.PlayerGuide == "Novice") State.PlayerGuide = "None";
-            if (State.PlayerGuide == "Veteran" && State.VeteranAvailable) State.VeteranAvailable = false;
-            else if (State.PlayerGuide == "Veteran") State.PlayerGuide = "None";
+            if (State.PlayerGuide == GameState.GuideNovice && State.NoviceAvailable) State.NoviceAvailable = false;
+            else if (State.PlayerGuide == GameState.GuideNovice) State.PlayerGuide = GameState.GuideNone;
+            if (State.PlayerGuide == GameState.GuideVeteran && State.VeteranAvailable) State.VeteranAvailable = false;
+            else if (State.PlayerGuide == GameState.GuideVeteran) State.PlayerGuide = GameState.GuideNone;
 
             if (State.PlayerPicksGuideFirst)
             {
                 State.ComputerGuide = _computerDecisionService.ChooseGuide(State.NoviceAvailable, State.VeteranAvailable, State.ComputerGuards, State.ComputerCamelQuality);
-                if (State.ComputerGuide == "Novice") State.NoviceAvailable = false;
-                if (State.ComputerGuide == "Veteran") State.VeteranAvailable = false;
+                if (State.ComputerGuide == GameState.GuideNovice) State.NoviceAvailable = false;
+                if (State.ComputerGuide == GameState.GuideVeteran) State.VeteranAvailable = false;
                 State.CurrentMessage += $"You chose {State.PlayerGuide} guide. Computer then chose {State.ComputerGuide} guide.\n";
             }
             else
@@ -137,7 +137,7 @@ namespace SogdianMerchant.Core.Services
             else
             {
                 State.ComputerMarket = _computerDecisionService.ChooseMarket(State.ComputerGuards, State.ComputerGuide, State.UnavailableMarkets, State.ComputerCamelQuality);
-                if (State.ComputerMarket != "Do Nothing")
+                if (State.ComputerMarket != GameState.DoNothingMarket)
                 {
                     State.UnavailableMarkets = State.UnavailableMarkets.Append(State.ComputerMarket).ToArray();
                     State.CurrentMessage += $"Computer chose {State.ComputerMarket}.\n";
@@ -152,8 +152,8 @@ namespace SogdianMerchant.Core.Services
 
         public void SubmitMarket()
         {
-            State.PlayerMarket = State.AvailableMarkets.Contains(State.MarketInput) ? State.MarketInput : "Do Nothing";
-            if (State.PlayerMarket != "Do Nothing")
+            State.PlayerMarket = State.AvailableMarkets.Contains(State.MarketInput) ? State.MarketInput : GameState.DoNothingMarket;
+            if (State.PlayerMarket != GameState.DoNothingMarket)
             {
                 State.UnavailableMarkets = State.UnavailableMarkets.Append(State.PlayerMarket).ToArray();
             }
@@ -161,7 +161,7 @@ namespace SogdianMerchant.Core.Services
             if (State.PlayerPicksMarketFirst)
             {
                 State.ComputerMarket = _computerDecisionService.ChooseMarket(State.ComputerGuards, State.ComputerGuide, State.UnavailableMarkets, State.ComputerCamelQuality);
-                if (State.ComputerMarket != "Do Nothing")
+                if (State.ComputerMarket != GameState.DoNothingMarket)
                 {
                     State.UnavailableMarkets = State.UnavailableMarkets.Append(State.ComputerMarket).ToArray();
                     State.CurrentMessage += $"You chose {State.PlayerMarket}. Computer then chose {State.ComputerMarket}.\n";
@@ -183,25 +183,25 @@ namespace SogdianMerchant.Core.Services
 
         public void EndRound()
         {
-            double riskTolerance = _rand.NextDouble(0.3, 0.7);
-            double playerProfit = _calculationService.CalculateProfit(State.PlayerMarket, State.PlayerGuards, State.PlayerGuide, 500.0, State.PlayerCamelQuality);
-            double computerProfit = _calculationService.CalculateProfit(State.ComputerMarket, State.ComputerGuards, State.ComputerGuide, 500.0, State.ComputerCamelQuality);
+            double riskTolerance = _rand.NextDouble(GameState.MinRiskTolerance, GameState.MaxRiskTolerance);
+            double playerProfit = _calculationService.CalculateProfit(State.PlayerMarket, State.PlayerGuards, State.PlayerGuide, GameState.DefaultCaravanValue, State.PlayerCamelQuality);
+            double computerProfit = _calculationService.CalculateProfit(State.ComputerMarket, State.ComputerGuards, State.ComputerGuide, GameState.DefaultCaravanValue, State.ComputerCamelQuality);
 
             State.PlayerGold += playerProfit;
             State.ComputerGold += computerProfit;
 
-            var playerResult = _calculationService.ChooseBestMarket(500.0, riskTolerance, State.PlayerGuards, State.PlayerGuide, State.UnavailableMarkets, State.PlayerCamelQuality);
-            var computerResult = _calculationService.ChooseBestMarket(500.0, riskTolerance, State.ComputerGuards, State.ComputerGuide, State.UnavailableMarkets, State.ComputerCamelQuality);
+            var playerResult = _calculationService.ChooseBestMarket(GameState.DefaultCaravanValue, riskTolerance, State.PlayerGuards, State.PlayerGuide, State.UnavailableMarkets, State.PlayerCamelQuality);
+            var computerResult = _calculationService.ChooseBestMarket(GameState.DefaultCaravanValue, riskTolerance, State.ComputerGuards, State.ComputerGuide, State.UnavailableMarkets, State.ComputerCamelQuality);
 
             State.CurrentMessage += "\nRound Summary:\n";
             State.CurrentMessage += $"You sent a caravan with {State.PlayerGuards} guards and a {State.PlayerGuide} guide to {State.PlayerMarket}.\n";
-            State.CurrentMessage += State.PlayerMarket != "Do Nothing" ? $"Your caravan earned {playerProfit:F2} gold.\n" : "You stayed home and earned no profit.\n";
+            State.CurrentMessage += State.PlayerMarket != GameState.DoNothingMarket ? $"Your caravan earned {playerProfit:F2} gold.\n" : "You stayed home and earned no profit.\n";
             State.CurrentMessage += $"\nThe computer sent a caravan with {State.ComputerGuards} guards and a {State.ComputerGuide} guide to {State.ComputerMarket}.\n";
-            State.CurrentMessage += State.ComputerMarket != "Do Nothing" ? $"The computer's caravan earned {computerProfit:F2} gold.\n" : "The computer stayed home and earned no profit.\n";
+            State.CurrentMessage += State.ComputerMarket != GameState.DoNothingMarket ? $"The computer's caravan earned {computerProfit:F2} gold.\n" : "The computer stayed home and earned no profit.\n";
 
             State.RoundNumber++;
 
-            if (State.PlayerGold >= 5000.0 || State.ComputerGold >= 5000.0)
+            if (State.PlayerGold >= GameState.WinningGold || State.ComputerGold >= GameState.WinningGold)
             {
                 State.GameOver = true;
                 State.CurrentMessage += "\nGame Over!\n";
@@ -218,9 +218,9 @@ namespace SogdianMerchant.Core.Services
 
         public void RestartGame()
         {
-            State.PlayerGold = 500.0;
-            State.ComputerGold = 500.0;
-            State.RoundNumber = 1;
+            State.PlayerGold = GameState.StartingGold;
+            State.ComputerGold = GameState.StartingGold;
+            State.RoundNumber = GameState.InitialRoundNumber;
             State.GameOver = false;
             StartRound();
         }
