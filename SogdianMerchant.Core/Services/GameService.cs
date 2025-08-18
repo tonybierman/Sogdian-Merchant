@@ -189,17 +189,12 @@ namespace SogdianMerchant.Core.Services
 
         public void EndRound()
         {
-            double riskTolerance = _rand.NextDouble(GameState.MinRiskTolerance, GameState.MaxRiskTolerance);
             double playerProfit = _calculationService.CalculateProfit(State.PlayerMarket, State.PlayerGuards, State.PlayerGuide, GameState.DefaultCaravanValue, State.PlayerCamelQuality);
             bool playerLossEvent = playerProfit < 0;
             double computerProfit = _calculationService.CalculateProfit(State.ComputerMarket, State.ComputerGuards, State.ComputerGuide, GameState.DefaultCaravanValue, State.ComputerCamelQuality);
             bool computerLossEvent = computerProfit < 0;
-
             State.PlayerGold += playerProfit;
             State.ComputerGold += computerProfit;
-
-            var playerResult = _calculationService.ChooseBestMarket(GameState.DefaultCaravanValue, riskTolerance, State.PlayerGuards, State.PlayerGuide, State.UnavailableMarkets, State.PlayerCamelQuality);
-            var computerResult = _calculationService.ChooseBestMarket(GameState.DefaultCaravanValue, riskTolerance, State.ComputerGuards, State.ComputerGuide, State.UnavailableMarkets, State.ComputerCamelQuality);
 
             _messenger.Publish("Round Summary:");
 
@@ -225,12 +220,15 @@ namespace SogdianMerchant.Core.Services
                 _messenger.Publish(State.ComputerMarket != GameState.DoNothingMarket ? $"The computer's caravan earned {computerProfit:F2} gold." : "The computer stayed home and earned no profit.");
             }
 
-            State.RoundNumber++;
-
+            // Test for game over conditions
             if (State.PlayerGold >= GameState.WinningGold || State.ComputerGold >= GameState.WinningGold)
             {
                 State.GameOver = true;
                 _messenger.Publish("Game Over!");
+            }
+            else 
+            {
+                State.RoundNumber++;
             }
         }
 

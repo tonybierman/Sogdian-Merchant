@@ -61,7 +61,6 @@ namespace SogdianMerchant.Core.Services
             return guide == GameState.GuideNovice ? GameState.GuideCostNovice : guide == GameState.GuideVeteran ? GameState.GuideCostVeteran : GameState.GuideCostNone;
         }
 
-        // TODO: Inform user about reason for negative profits
         public double CalculateProfit(string market, int guards, string guide, double caravanValue, double camelQuality)
         {
             // Retrieve dynamic markets data

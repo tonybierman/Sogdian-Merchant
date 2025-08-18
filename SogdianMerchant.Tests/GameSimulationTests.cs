@@ -16,6 +16,7 @@ namespace SogdianMerchant.Tests
             services.AddSingleton<ICalculationService, CalculationService>();
             services.AddSingleton<IComputerDecisionService, ComputerDecisionService>();
             services.AddSingleton<IGameService, GameService>();
+            services.AddSingleton<IMessageHubService, MessageHubService>();
             var provider = services.BuildServiceProvider();
             GameService = provider.GetRequiredService<IGameService>();
         }
