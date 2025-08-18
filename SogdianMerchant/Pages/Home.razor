@@ -4,62 +4,73 @@
 @inject IGameService GameService
 @inject IMessageHubService Messenger
 
-<h3>Caravan Trading Game</h3>
+<div style="height: 100vh;">
+    <FluentMainLayout NavMenuTitle="Navigation menu">
+        <Header>Sogdian Merchants</Header>
+        <SubHeader>The Caravan Trading Game</SubHeader>
+        <Body>
+            <div>
+                <p>Round @GameService.State.RoundNumber</p>
+                <p>Player Gold: @GameService.State.PlayerGold.ToString("F2") | Computer Gold: @GameService.State.ComputerGold.ToString("F2")</p>
+                <p>Your camel quality this round: @GameService.State.PlayerCamelQuality.ToString("F2") (speed multiplier)</p>
+                <pre>@Messenger.ToString()</pre>
 
-<div>
-    <p>Round @GameService.State.RoundNumber</p>
-    <p>Player Gold: @GameService.State.PlayerGold.ToString("F2") | Computer Gold: @GameService.State.ComputerGold.ToString("F2")</p>
-    <p>Your camel quality this round: @GameService.State.PlayerCamelQuality.ToString("F2") (speed multiplier)</p>
-    <pre>@Messenger.ToString()</pre>
+                @if (!GameService.State.GameOver)
+                {
+                    @if (GameService.State.CurrentPhase == "guards" && GameService.State.ChoosingGuards)
+                    {
+                        <p>Available guards: @GameService.State.AvailableGuards</p>
+                        <input type="number" @bind="GameService.State.GuardInput" min="1" max="@GameService.State.AvailableGuards" />
+                        <button @onclick="SubmitGuards">Submit Guards</button>
+                    }
+                    else if (GameService.State.CurrentPhase == "guide" && GameService.State.ChoosingGuide)
+                    {
+                        <p>Available guides: @(GameService.State.NoviceAvailable ? "Novice " : "")@(GameService.State.VeteranAvailable ? "Veteran " : "")@(GameService.State.NoviceAvailable || GameService.State.VeteranAvailable ? "" : "None")</p>
+                        <select @bind="GameService.State.GuideInput">
+                            <option value="None">None</option>
+                            @if (GameService.State.NoviceAvailable)
+                            {
+                                <option value="Novice">Novice</option>
+                            }
+                            @if (GameService.State.VeteranAvailable)
+                            {
+                                <option value="Veteran">Veteran</option>
+                            }
+                        </select>
+                        <button @onclick="SubmitGuide">Submit Guide</button>
+                    }
+                    else if (GameService.State.CurrentPhase == "market" && GameService.State.ChoosingMarket)
+                    {
+                        <p>Available markets: @string.Join(", ", GameService.State.AvailableMarkets)</p>
+                        <select @bind="GameService.State.MarketInput">
+                            <option value="Do Nothing">Do Nothing</option>
+                            @foreach (var market in GameService.State.AvailableMarkets)
+                            {
+                                <option value="@market">@market</option>
+                            }
+                        </select>
+                        <button @onclick="SubmitMarket">Submit Market</button>
+                    }
+                    else if (GameService.State.CurrentPhase == "end")
+                    {
+                        <button @onclick="ContinueToNextRound">Continue to Next Round</button>
+                    }
+                }
 
-    @if (!GameService.State.GameOver)
-    {
-        @if (GameService.State.CurrentPhase == "guards" && GameService.State.ChoosingGuards)
-        {
-            <p>Available guards: @GameService.State.AvailableGuards</p>
-            <input type="number" @bind="GameService.State.GuardInput" min="1" max="@GameService.State.AvailableGuards" />
-            <button @onclick="SubmitGuards">Submit Guards</button>
-        }
-        else if (GameService.State.CurrentPhase == "guide" && GameService.State.ChoosingGuide)
-        {
-            <p>Available guides: @(GameService.State.NoviceAvailable ? "Novice " : "")@(GameService.State.VeteranAvailable ? "Veteran " : "")@(GameService.State.NoviceAvailable || GameService.State.VeteranAvailable ? "" : "None")</p>
-            <select @bind="GameService.State.GuideInput">
-                <option value="None">None</option>
-                @if (GameService.State.NoviceAvailable)
+                @if (GameService.State.GameOver)
                 {
-                    <option value="Novice">Novice</option>
+                    <p>@(GameService.State.PlayerGold >= 5000.0 ? "Player wins the game!" : "Computer wins the game!")</p>
+                    <button @onclick="RestartGame">Restart Game</button>
                 }
-                @if (GameService.State.VeteranAvailable)
-                {
-                    <option value="Veteran">Veteran</option>
-                }
-            </select>
-            <button @onclick="SubmitGuide">Submit Guide</button>
-        }
-        else if (GameService.State.CurrentPhase == "market" && GameService.State.ChoosingMarket)
-        {
-            <p>Available markets: @string.Join(", ", GameService.State.AvailableMarkets)</p>
-            <select @bind="GameService.State.MarketInput">
-                <option value="Do Nothing">Do Nothing</option>
-                @foreach (var market in GameService.State.AvailableMarkets)
-                {
-                    <option value="@market">@market</option>
-                }
-            </select>
-            <button @onclick="SubmitMarket">Submit Market</button>
-        }
-        else if (GameService.State.CurrentPhase == "end")
-        {
-            <button @onclick="ContinueToNextRound">Continue to Next Round</button>
-        }
-    }
+            </div>
 
-    @if (GameService.State.GameOver)
-    {
-        <p>@(GameService.State.PlayerGold >= 5000.0 ? "Player wins the game!" : "Computer wins the game!")</p>
-        <button @onclick="RestartGame">Restart Game</button>
-    }
+        </Body>
+        <NavMenuContent>
+            <FluentNavLink Href="/" Text="Home">Home</FluentNavLink>
+        </NavMenuContent>
+    </FluentMainLayout>
 </div>
+
 
 @code {
     protected override void OnInitialized()

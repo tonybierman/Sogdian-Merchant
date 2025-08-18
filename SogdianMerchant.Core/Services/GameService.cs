@@ -19,6 +19,7 @@ namespace SogdianMerchant.Core.Services
 
         public void StartRound()
         {
+            _messenger.Clear();
             State.CurrentPhase = "guards";
             State.PlayerCamelQuality = _rand.NextDouble() * GameState.CamelQualityVariation + GameState.MinCamelQuality;
             State.ComputerCamelQuality = _rand.NextDouble() * GameState.CamelQualityVariation + GameState.MinCamelQuality;

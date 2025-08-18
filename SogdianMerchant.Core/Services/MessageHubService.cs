@@ -24,5 +24,10 @@ namespace SogdianMerchant.Core.Services
         {
             return _messageBuffer.ToString();
         }
+
+        public void Clear()
+        {
+            _messageBuffer.Clear();
+        }
     }
 }
