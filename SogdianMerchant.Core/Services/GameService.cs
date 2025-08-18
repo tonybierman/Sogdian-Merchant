@@ -37,6 +37,7 @@ namespace SogdianMerchant.Core.Services
             {
                 var randomMarket = GameState.AllMarkets[_rand.Next(GameState.AllMarkets.Length)];
                 State.UnavailableMarkets = new[] { randomMarket };
+                State.CurrentMessage += $"{randomMarket} is unavailable this round.\n";
             }
 
             StartGuardsPhase();
@@ -54,6 +55,7 @@ namespace SogdianMerchant.Core.Services
             }
             else
             {
+                // TODO: Sometimes when the computer picks first, it may not leave enough guards for the player.
                 State.ComputerGuards = _computerDecisionService.ChooseGuards(State.AvailableGuards, State.NoviceAvailable, State.VeteranAvailable, State.ComputerCamelQuality);
                 State.AvailableGuards -= State.ComputerGuards;
                 State.CurrentMessage += $"Computer chose {State.ComputerGuards} guards, leaving {State.AvailableGuards} for you.\n";
