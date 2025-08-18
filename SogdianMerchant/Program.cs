@@ -14,5 +14,6 @@ builder.Services.AddScoped<IRandomGenerator, RandomGenerator>();
 builder.Services.AddScoped<ICalculationService, CalculationService>();
 builder.Services.AddScoped<IComputerDecisionService, ComputerDecisionService>();
 builder.Services.AddScoped<IGameService, GameService>();
+builder.Services.AddScoped<IMessageHubService, MessageHubService>();
 
 await builder.Build().RunAsync();

@@ -7,23 +7,27 @@ namespace SogdianMerchant.Core.Services
         private readonly IRandomGenerator _rand;
         private readonly IComputerDecisionService _computerDecisionService;
         private readonly ICalculationService _calculationService;
+        private readonly IMessageHubService _messenger;
 
-        public GameService(IRandomGenerator rand, IComputerDecisionService computerDecisionService, ICalculationService calculationService)
+        public GameService(IRandomGenerator rand, IComputerDecisionService computerDecisionService, ICalculationService calculationService, IMessageHubService messenger)
         {
             _rand = rand;
             _computerDecisionService = computerDecisionService;
             _calculationService = calculationService;
+            _messenger = messenger;
         }
 
         public void StartRound()
         {
-            State.CurrentMessage = $"Round {State.RoundNumber} begins!\n";
+            State.CurrentPhase = "guards";
             State.PlayerCamelQuality = _rand.NextDouble() * GameState.CamelQualityVariation + GameState.MinCamelQuality;
             State.ComputerCamelQuality = _rand.NextDouble() * GameState.CamelQualityVariation + GameState.MinCamelQuality;
             State.AvailableGuards = GameState.TotalGuards;
             State.NoviceAvailable = true;
             State.VeteranAvailable = true;
             State.UnavailableMarkets = Array.Empty<string>();
+
+            _messenger.Publish($"Round {State.RoundNumber} begins!");
 
             if (_rand.NextDouble() < GameState.GuardScarcityProbability) State.AvailableGuards = 0; // Resource scarcity
             if (_rand.NextDouble() < GameState.GuideUnavailabilityProbability)
@@ -37,7 +41,7 @@ namespace SogdianMerchant.Core.Services
             {
                 var randomMarket = GameState.AllMarkets[_rand.Next(GameState.AllMarkets.Length)];
                 State.UnavailableMarkets = new[] { randomMarket };
-                State.CurrentMessage += $"{randomMarket} is unavailable this round.\n";
+                _messenger.Publish($"{randomMarket} is unavailable this round.");
             }
 
             StartGuardsPhase();
@@ -47,7 +51,7 @@ namespace SogdianMerchant.Core.Services
         {
             State.CurrentPhase = "guards";
             State.PlayerPicksGuardsFirst = _rand.Next(2) == 0;
-            State.CurrentMessage += State.PlayerPicksGuardsFirst ? "You pick guards first.\n" : "Computer picks guards first.\n";
+            _messenger.Publish(State.PlayerPicksGuardsFirst ? "You pick guards first." : "Computer picks guards first.");
 
             if (State.PlayerPicksGuardsFirst)
             {
@@ -55,10 +59,9 @@ namespace SogdianMerchant.Core.Services
             }
             else
             {
-                // TODO: Sometimes when the computer picks first, it may not leave enough guards for the player.
                 State.ComputerGuards = _computerDecisionService.ChooseGuards(State.AvailableGuards, State.NoviceAvailable, State.VeteranAvailable, State.ComputerCamelQuality);
                 State.AvailableGuards -= State.ComputerGuards;
-                State.CurrentMessage += $"Computer chose {State.ComputerGuards} guards, leaving {State.AvailableGuards} for you.\n";
+                _messenger.Publish($"Computer chose {State.ComputerGuards} guards, leaving {State.AvailableGuards} for you.");
                 State.ChoosingGuards = true;
             }
         }
@@ -71,11 +74,11 @@ namespace SogdianMerchant.Core.Services
             {
                 State.ComputerGuards = _computerDecisionService.ChooseGuards(State.AvailableGuards, State.NoviceAvailable, State.VeteranAvailable, State.ComputerCamelQuality);
                 State.AvailableGuards -= State.ComputerGuards;
-                State.CurrentMessage += $"You chose {State.PlayerGuards} guards. Computer then chose {State.ComputerGuards} guards.\n";
+                _messenger.Publish($"You chose {State.PlayerGuards} guards. Computer then chose {State.ComputerGuards} guards.");
             }
             else
             {
-                State.CurrentMessage += $"You chose {State.PlayerGuards} guards.\n";
+                _messenger.Publish($"You chose {State.PlayerGuards} guards.");
             }
 
             State.ChoosingGuards = false;
@@ -86,7 +89,7 @@ namespace SogdianMerchant.Core.Services
         {
             State.CurrentPhase = "guide";
             State.PlayerPicksGuideFirst = _rand.Next(2) == 0;
-            State.CurrentMessage += State.PlayerPicksGuideFirst ? "You pick guide first.\n" : "Computer picks guide first.\n";
+            _messenger.Publish(State.PlayerPicksGuideFirst ? "You pick guide first." : "Computer picks guide first.");
 
             if (State.PlayerPicksGuideFirst)
             {
@@ -97,7 +100,7 @@ namespace SogdianMerchant.Core.Services
                 State.ComputerGuide = _computerDecisionService.ChooseGuide(State.NoviceAvailable, State.VeteranAvailable, State.ComputerGuards, State.ComputerCamelQuality);
                 if (State.ComputerGuide == GameState.GuideNovice) State.NoviceAvailable = false;
                 if (State.ComputerGuide == GameState.GuideVeteran) State.VeteranAvailable = false;
-                State.CurrentMessage += $"Computer chose {State.ComputerGuide} guide.\n";
+                _messenger.Publish($"Computer chose {State.ComputerGuide} guide.");
                 State.ChoosingGuide = true;
             }
         }
@@ -115,11 +118,11 @@ namespace SogdianMerchant.Core.Services
                 State.ComputerGuide = _computerDecisionService.ChooseGuide(State.NoviceAvailable, State.VeteranAvailable, State.ComputerGuards, State.ComputerCamelQuality);
                 if (State.ComputerGuide == GameState.GuideNovice) State.NoviceAvailable = false;
                 if (State.ComputerGuide == GameState.GuideVeteran) State.VeteranAvailable = false;
-                State.CurrentMessage += $"You chose {State.PlayerGuide} guide. Computer then chose {State.ComputerGuide} guide.\n";
+                _messenger.Publish($"You chose {State.PlayerGuide} guide. Computer then chose {State.ComputerGuide} guide.");
             }
             else
             {
-                State.CurrentMessage += $"You chose {State.PlayerGuide} guide.\n";
+                _messenger.Publish($"You chose {State.PlayerGuide} guide.");
             }
 
             State.ChoosingGuide = false;
@@ -130,7 +133,7 @@ namespace SogdianMerchant.Core.Services
         {
             State.CurrentPhase = "market";
             State.PlayerPicksMarketFirst = _rand.Next(2) == 0;
-            State.CurrentMessage += State.PlayerPicksMarketFirst ? "You pick market first.\n" : "Computer picks market first.\n";
+            _messenger.Publish(State.PlayerPicksMarketFirst ? "You pick market first." : "Computer picks market first.");
 
             if (State.PlayerPicksMarketFirst)
             {
@@ -142,11 +145,11 @@ namespace SogdianMerchant.Core.Services
                 if (State.ComputerMarket != GameState.DoNothingMarket)
                 {
                     State.UnavailableMarkets = State.UnavailableMarkets.Append(State.ComputerMarket).ToArray();
-                    State.CurrentMessage += $"Computer chose {State.ComputerMarket}.\n";
+                    _messenger.Publish($"Computer chose {State.ComputerMarket}.");
                 }
                 else
                 {
-                    State.CurrentMessage += "Computer chose to Do Nothing.\n";
+                    _messenger.Publish("Computer chose to Do Nothing.");
                 }
                 State.ChoosingMarket = true;
             }
@@ -166,16 +169,16 @@ namespace SogdianMerchant.Core.Services
                 if (State.ComputerMarket != GameState.DoNothingMarket)
                 {
                     State.UnavailableMarkets = State.UnavailableMarkets.Append(State.ComputerMarket).ToArray();
-                    State.CurrentMessage += $"You chose {State.PlayerMarket}. Computer then chose {State.ComputerMarket}.\n";
+                    _messenger.Publish($"You chose {State.PlayerMarket}. Computer then chose {State.ComputerMarket}.");
                 }
                 else
                 {
-                    State.CurrentMessage += $"You chose {State.PlayerMarket}. Computer chose to Do Nothing.\n";
+                    _messenger.Publish($"You chose {State.PlayerMarket}. Computer chose to Do Nothing.");
                 }
             }
             else
             {
-                State.CurrentMessage += $"You chose {State.PlayerMarket}.\n";
+                _messenger.Publish($"You chose {State.PlayerMarket}.");
             }
 
             State.ChoosingMarket = false;
@@ -195,18 +198,18 @@ namespace SogdianMerchant.Core.Services
             var playerResult = _calculationService.ChooseBestMarket(GameState.DefaultCaravanValue, riskTolerance, State.PlayerGuards, State.PlayerGuide, State.UnavailableMarkets, State.PlayerCamelQuality);
             var computerResult = _calculationService.ChooseBestMarket(GameState.DefaultCaravanValue, riskTolerance, State.ComputerGuards, State.ComputerGuide, State.UnavailableMarkets, State.ComputerCamelQuality);
 
-            State.CurrentMessage += "\nRound Summary:\n";
-            State.CurrentMessage += $"You sent a caravan with {State.PlayerGuards} guards and a {State.PlayerGuide} guide to {State.PlayerMarket}.\n";
-            State.CurrentMessage += State.PlayerMarket != GameState.DoNothingMarket ? $"Your caravan earned {playerProfit:F2} gold.\n" : "You stayed home and earned no profit.\n";
-            State.CurrentMessage += $"\nThe computer sent a caravan with {State.ComputerGuards} guards and a {State.ComputerGuide} guide to {State.ComputerMarket}.\n";
-            State.CurrentMessage += State.ComputerMarket != GameState.DoNothingMarket ? $"The computer's caravan earned {computerProfit:F2} gold.\n" : "The computer stayed home and earned no profit.\n";
+            _messenger.Publish("Round Summary:");
+            _messenger.Publish($"You sent a caravan with {State.PlayerGuards} guards and a {State.PlayerGuide} guide to {State.PlayerMarket}.");
+            _messenger.Publish(State.PlayerMarket != GameState.DoNothingMarket ? $"Your caravan earned {playerProfit:F2} gold." : "You stayed home and earned no profit.");
+            _messenger.Publish($"The computer sent a caravan with {State.ComputerGuards} guards and a {State.ComputerGuide} guide to {State.ComputerMarket}.");
+            _messenger.Publish(State.ComputerMarket != GameState.DoNothingMarket ? $"The computer's caravan earned {computerProfit:F2} gold." : "The computer stayed home and earned no profit.");
 
             State.RoundNumber++;
 
             if (State.PlayerGold >= GameState.WinningGold || State.ComputerGold >= GameState.WinningGold)
             {
                 State.GameOver = true;
-                State.CurrentMessage += "\nGame Over!\n";
+                _messenger.Publish("Game Over!");
             }
         }
 

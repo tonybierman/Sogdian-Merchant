@@ -2,6 +2,7 @@
 @using System.Linq
 @inject IJSRuntime JSRuntime
 @inject IGameService GameService
+@inject IMessageHubService Messenger
 
 <h3>Caravan Trading Game</h3>
 
@@ -9,7 +10,7 @@
     <p>Round @GameService.State.RoundNumber</p>
     <p>Player Gold: @GameService.State.PlayerGold.ToString("F2") | Computer Gold: @GameService.State.ComputerGold.ToString("F2")</p>
     <p>Your camel quality this round: @GameService.State.PlayerCamelQuality.ToString("F2") (speed multiplier)</p>
-    <pre>@GameService.State.CurrentMessage</pre>
+    <pre>@Messenger.ToString()</pre>
 
     @if (!GameService.State.GameOver)
     {
