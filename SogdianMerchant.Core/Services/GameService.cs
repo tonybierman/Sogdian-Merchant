@@ -191,7 +191,9 @@ namespace SogdianMerchant.Core.Services
         {
             double riskTolerance = _rand.NextDouble(GameState.MinRiskTolerance, GameState.MaxRiskTolerance);
             double playerProfit = _calculationService.CalculateProfit(State.PlayerMarket, State.PlayerGuards, State.PlayerGuide, GameState.DefaultCaravanValue, State.PlayerCamelQuality);
+            bool playerLossEvent = playerProfit < 0;
             double computerProfit = _calculationService.CalculateProfit(State.ComputerMarket, State.ComputerGuards, State.ComputerGuide, GameState.DefaultCaravanValue, State.ComputerCamelQuality);
+            bool computerLossEvent = computerProfit < 0;
 
             State.PlayerGold += playerProfit;
             State.ComputerGold += computerProfit;
@@ -200,10 +202,28 @@ namespace SogdianMerchant.Core.Services
             var computerResult = _calculationService.ChooseBestMarket(GameState.DefaultCaravanValue, riskTolerance, State.ComputerGuards, State.ComputerGuide, State.UnavailableMarkets, State.ComputerCamelQuality);
 
             _messenger.Publish("Round Summary:");
+
+            // Player results
             _messenger.Publish($"You sent a caravan with {State.PlayerGuards} guards and a {State.PlayerGuide} guide to {State.PlayerMarket}.");
-            _messenger.Publish(State.PlayerMarket != GameState.DoNothingMarket ? $"Your caravan earned {playerProfit:F2} gold." : "You stayed home and earned no profit.");
+            if(playerLossEvent)
+            {
+                _messenger.Publish($"Your caravan suffered a loss of {-playerProfit:F2} gold.");
+            }
+            else
+            {
+                _messenger.Publish(State.PlayerMarket != GameState.DoNothingMarket ? $"Your caravan earned {playerProfit:F2} gold." : "You stayed home and earned no profit.");
+            }
+
+            // Computer results
             _messenger.Publish($"The computer sent a caravan with {State.ComputerGuards} guards and a {State.ComputerGuide} guide to {State.ComputerMarket}.");
-            _messenger.Publish(State.ComputerMarket != GameState.DoNothingMarket ? $"The computer's caravan earned {computerProfit:F2} gold." : "The computer stayed home and earned no profit.");
+            if (computerLossEvent)
+            {
+                _messenger.Publish($"The computer's caravan suffered a loss of {-computerProfit:F2} gold.");
+            }
+            else
+            {
+                _messenger.Publish(State.ComputerMarket != GameState.DoNothingMarket ? $"The computer's caravan earned {computerProfit:F2} gold." : "The computer stayed home and earned no profit.");
+            }
 
             State.RoundNumber++;
 
